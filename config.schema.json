@@ -1,0 +1,36 @@
+{
+  "pluginAlias": "MiIOLocalPlatformPlugin",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "devices": {
+        "title": "devices",
+        "type": "array",
+        "required": true,
+        "items": {
+          "title": "Device Config",
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "title": "Device ID",
+              "required": true,
+              "type": "string"
+            },
+            "token": {
+              "title": "Device Token",
+              "required": true,
+              "type": "string"
+            },
+            "name": {
+              "title": "Device Name",
+              "required": true,
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
