@@ -1,7 +1,7 @@
 import { YeeLightController, YeeLightPropValue } from '../../miio/controllers';
 import { DeviceConnector } from '../DeviceConnector';
 import { CharacteristicValue, Nullable } from 'homebridge';
-import { Unit } from '../../utils/Unit';
+import { Unit } from '../../utils';
 
 export class YeeLinkLightLamp15Connector extends DeviceConnector {
   static model = 'yeelink.light.lamp15';

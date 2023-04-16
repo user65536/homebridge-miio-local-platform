@@ -3,7 +3,6 @@ import { DeviceBaseInfo } from './DeviceInfo';
 import { MiIONetwork } from './MiIONetwork';
 import { MiIOPacket } from './MiIOPacket';
 import { EventEmitter } from '../utils/EventEmitter';
-import { Logger } from 'homebridge';
 
 export interface DeviceConfig extends Pick<DeviceBaseInfo, 'deviceId' | 'token'> {
   name: string;
@@ -19,9 +18,10 @@ export type PlatformEvents = {
 
 export class MiIOManager extends EventEmitter<PlatformEvents> {
   devices: Device[] = [];
+
   network = new MiIONetwork();
 
-  constructor(private config: MiIOManagerConfig, private logger?: Logger) {
+  constructor(private config: MiIOManagerConfig) {
     super();
     this.bindEvent();
   }
@@ -45,7 +45,6 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
       deviceInfo: { deviceId, deviceUpTime, address, token: config.token },
       network: this.network,
       name: config.name,
-      logger: this.logger,
     });
     return device;
   }

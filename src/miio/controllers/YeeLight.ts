@@ -1,4 +1,4 @@
-import { Unit } from '../../utils/Unit';
+import { Unit } from '../../utils';
 import { Device } from '../Device';
 
 export type YeeLightPropValue = string | number;

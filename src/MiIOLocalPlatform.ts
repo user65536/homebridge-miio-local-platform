@@ -5,6 +5,7 @@ import { MiIOManager } from './miio/MiIOManager';
 import { MiIOPlatformConfig } from './PlatformConfig';
 import { Device } from './miio/Device';
 import { ConnectorFactory } from './connector/ConnectorFactory';
+import { BuiltinLogger } from './utils';
 
 /**
  * HomebridgePlatform
@@ -21,7 +22,8 @@ export class MiIOLocalPlatform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
 
   constructor(public readonly log: Logger, public readonly config: PlatformConfig, public readonly api: API) {
-    this.miIOManager = new MiIOManager(config as MiIOPlatformConfig, log);
+    BuiltinLogger.compose(log);
+    this.miIOManager = new MiIOManager(config as MiIOPlatformConfig);
     this.log.debug('Finished initializing platform:', this.config.name);
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
@@ -46,27 +48,31 @@ export class MiIOLocalPlatform implements DynamicPlatformPlugin {
     this.accessories.push(accessory);
   }
 
+  getAccessory(id: string, name = 'new accessory') {
+    const uuid = this.api.hap.uuid.generate(id.toString());
+    const existingAccessory = this.accessories.find((accessory) => accessory.UUID === uuid);
+    if (existingAccessory) {
+      this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+      return existingAccessory;
+    }
+    const accessory = new this.api.platformAccessory(name, uuid);
+    this.log.info('Adding new accessory:', name);
+    this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    return accessory;
+  }
+
   /**
    * This is an example method showing how to register discovered accessories.
    * Accessories must only be registered once, previously created accessories
    * must not be registered again to prevent "duplicate UUID" errors.
    */
   handleDevice = (device: Device) => {
-    const uuid = this.api.hap.uuid.generate(device.id.toString());
     const Connector = ConnectorFactory.find(device.model);
     if (!Connector) {
       this.log.warn(`Can not find device connector for model ${device.model}, maybe this device is unsupported`);
       return;
     }
-    const existingAccessory = this.accessories.find((accessory) => accessory.UUID === uuid);
-    if (existingAccessory) {
-      this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-      new Connector(device, existingAccessory, this).connect();
-    } else {
-      this.log.info('Adding new accessory:', device.name);
-      const accessory = new this.api.platformAccessory(device.name, uuid);
-      new Connector(device, accessory, this).connect();
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-    }
+    const accessory = this.getAccessory(device.id.toString(), device.name);
+    new Connector(device, accessory, this).connect();
   };
 }

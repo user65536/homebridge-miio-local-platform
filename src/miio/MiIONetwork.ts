@@ -2,6 +2,7 @@ import dgram from 'dgram';
 import { DeviceBaseInfo } from './DeviceInfo';
 import { MiIOPacket as MiIOPacket } from './MiIOPacket';
 import { EventEmitter } from '../utils/EventEmitter';
+import { BuiltinLogger } from '../utils';
 
 export type MiIONetworkEvents = {
   packet: (packet: MiIOPacket, remoteAddress: string) => void;
@@ -9,7 +10,10 @@ export type MiIONetworkEvents = {
 
 export class MiIONetwork extends EventEmitter<MiIONetworkEvents> {
   readonly port = 54321;
+
   socket: dgram.Socket;
+
+  logger = new BuiltinLogger('network');
 
   constructor() {
     super();
@@ -31,10 +35,12 @@ export class MiIONetwork extends EventEmitter<MiIONetworkEvents> {
     if (!packet) {
       return;
     }
+    this.logger.debug(`<- ${address}`, buffer);
     this.emit('packet', packet, address);
   }
 
   private send(address: string, buffer: Uint8Array) {
+    this.logger.debug(`-> ${address}`, buffer);
     return new Promise((resolve, reject) => {
       this.socket.send(buffer, this.port, address, (err) => {
         if (err) {

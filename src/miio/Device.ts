@@ -1,7 +1,7 @@
 import { DeviceBaseInfo, DeviceDetailInfo } from './DeviceInfo';
 import { MiIONetwork } from './MiIONetwork';
 import { MiIOPacket } from './MiIOPacket';
-import { Logger } from 'homebridge';
+import { BuiltinLogger, Logger } from '../utils';
 
 export interface RequestPayload<T> {
   id: number;
@@ -23,14 +23,13 @@ export interface DeviceOptions {
   deviceInfo: DeviceBaseInfo;
   network: MiIONetwork;
   name: string;
-  logger?: Logger;
 }
 
 export class Device {
   name: string;
   baseInfo: DeviceBaseInfo;
   detailInfo?: DeviceDetailInfo;
-  logger?: Logger;
+  logger: Logger = new BuiltinLogger('device');
   private network: MiIONetwork;
   private _requestId = 0;
   private requestPromises = new Map<number, RequestPromise>();
@@ -56,7 +55,6 @@ export class Device {
     this.name = options.name;
     this.baseInfo = options.deviceInfo;
     this.network = options.network;
-    this.logger = options.logger;
   }
 
   private setRequestTimeout(id: number, time: number) {
@@ -91,7 +89,7 @@ export class Device {
     return new Promise<ResponsePayload<R>>((resolve, reject) => {
       const id = this.requestId;
       const payload = JSON.stringify({ id, method, params });
-      this.logger?.debug(`device ${this.name} ->`, payload);
+      this.logger?.debug(`${this.name} ->`, payload);
       this.network.sendToDevice(this.baseInfo, payload);
       this.requestPromises.set(id, { resolve: resolve as (value: unknown) => void, reject });
       this.setRequestTimeout(id, 3000);
@@ -110,11 +108,12 @@ export class Device {
     try {
       this.baseInfo.deviceUpTime = packet.deviceUpTime;
       const payload = packet.decryptByToken(this.token);
-      this.logger?.debug(`device ${this.name} <-`, payload);
+      this.logger?.debug(`${this.name} <-`, payload);
       if (!payload) {
         return;
       }
-      const data = JSON.parse(payload) as ResponsePayload;
+      // eslint-disable-next-line no-control-regex
+      const data = JSON.parse(payload.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '')) as ResponsePayload;
       const promise = this.requestPromises.get(data.id);
       promise?.resolve(data);
       this.requestPromises.delete(data.id);

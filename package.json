@@ -26,6 +26,7 @@
     "homebridge-plugin"
   ],
   "devDependencies": {
+    "@types/debug": "^4.1.7",
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
@@ -36,5 +37,7 @@
     "ts-node": "^10.3.0",
     "typescript": "^4.4.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "debug": "^4.3.4"
+  }
 }
