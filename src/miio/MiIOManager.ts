@@ -3,6 +3,7 @@ import { DeviceBaseInfo } from './DeviceInfo';
 import { MiIONetwork } from './MiIONetwork';
 import { MiIOPacket } from './MiIOPacket';
 import { EventEmitter } from '../utils/EventEmitter';
+import { BuiltinLogger } from '../utils';
 
 export interface DeviceConfig extends Pick<DeviceBaseInfo, 'deviceId' | 'token'> {
   name: string;
@@ -21,6 +22,8 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
 
   network = new MiIONetwork();
 
+  logger = new BuiltinLogger('manager');
+
   constructor(private config: MiIOManagerConfig) {
     super();
     this.bindEvent();
@@ -37,8 +40,10 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
 
   private createDeviceByPacket(packet: MiIOPacket, address: string) {
     const { deviceId, deviceUpTime } = packet;
+    this.logger.info('discoverd device id: ', deviceId);
     const config = this.getConfigByDeviceId(deviceId);
     if (!config) {
+      this.logger.info(`no config found for device ${deviceId}, ignored`);
       return;
     }
     const device = new Device({

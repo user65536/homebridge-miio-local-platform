@@ -1,12 +1,6 @@
 import { Unit } from '../../utils';
 import { Device } from '../Device';
 
-export type YeeLightPropValue = string | number;
-
-interface PropResponse {
-  result: Array<YeeLightPropValue>;
-}
-
 type LightState = string | number | Array<string | number>;
 
 export class YeeLightController {
@@ -15,11 +9,6 @@ export class YeeLightController {
   saturation = 0;
 
   constructor(private device: Device) {}
-
-  async getProp(prop: string) {
-    const res = await this.device.send<PropResponse>('get_prop', [prop]);
-    return res.result?.[0];
-  }
 
   private async setLight(key: string, state: LightState) {
     const propState = Array.isArray(state) ? state : [state];
@@ -55,7 +44,7 @@ export class YeeLightController {
   }
 
   async getBgRgb() {
-    const rgbString = await this.getProp('bg_rgb');
+    const rgbString = await this.device.getProp('bg_rgb');
     const rgb = parseInt(rgbString as string);
     return rgb;
   }

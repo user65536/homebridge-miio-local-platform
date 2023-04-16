@@ -31,12 +31,10 @@ export class Device {
   detailInfo?: DeviceDetailInfo;
   logger: Logger = new BuiltinLogger('device');
   private network: MiIONetwork;
-  private _requestId = 0;
   private requestPromises = new Map<number, RequestPromise>();
 
   get requestId() {
-    this._requestId += 1;
-    return this._requestId;
+    return Math.round(Math.random() * 100000);
   }
 
   get id() {
@@ -94,6 +92,15 @@ export class Device {
       this.requestPromises.set(id, { resolve: resolve as (value: unknown) => void, reject });
       this.setRequestTimeout(id, 3000);
     });
+  }
+
+  async getProp(prop: string): Promise<string | number>;
+  async getProp(prop: string[]): Promise<Array<string | number>>;
+  async getProp(prop: string | string[]) {
+    const isArrayProps = Array.isArray(prop);
+    const propArray = isArrayProps ? prop : [prop];
+    const res = await this.send<{ result: Array<string | number> }>('get_prop', propArray);
+    return isArrayProps ? res.result : res.result[0];
   }
 
   updateAddress(address: string) {

@@ -1,4 +1,4 @@
-import { YeeLightController, YeeLightPropValue } from '../../miio/controllers';
+import { YeeLightController } from '../../miio/controllers';
 import { DeviceConnector } from '../DeviceConnector';
 import { CharacteristicValue, Nullable } from 'homebridge';
 import { Unit } from '../../utils';
@@ -7,15 +7,6 @@ export class YeeLinkLightLamp15Connector extends DeviceConnector {
   static model = 'yeelink.light.lamp15';
 
   controller = new YeeLightController(this.device);
-
-  setupInformation() {
-    this.accessory
-      .getService(this.Service.AccessoryInformation)!
-      .setCharacteristic(this.Characteristic.Manufacturer, 'Yeelight Technology')
-      .setCharacteristic(this.Characteristic.Model, this.device.model)
-      .setCharacteristic(this.Characteristic.SerialNumber, String(this.device.id))
-      .setCharacteristic(this.Characteristic.FirmwareRevision, String(this.device.detailInfo?.fw_ver || 'unknown'));
-  }
 
   setupLightService() {
     const serviceName = 'light';
@@ -60,14 +51,13 @@ export class YeeLinkLightLamp15Connector extends DeviceConnector {
   }
 
   connect(): void {
-    this.setupInformation();
+    this.setupInformation('Yeelight Technology');
     this.setupLightService();
     this.setupBgService();
-    // this.device.send('bg_start_cf', [0, 0, '10000,1,16711701,-1,10000,1,2300,-1,10000,1,65280,-1']).then((v) => console.log(v));
   }
 
-  createPropGetter = (prop: string, transformer?: (prop: YeeLightPropValue) => Nullable<CharacteristicValue>) => () => {
-    return this.controller.getProp(prop).then(transformer);
+  createPropGetter = (prop: string, transformer?: (prop: string | number) => Nullable<CharacteristicValue>) => () => {
+    return this.device.getProp(prop).then(transformer);
   };
 
   handleSetBright = (value: CharacteristicValue) => {

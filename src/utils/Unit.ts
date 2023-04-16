@@ -31,4 +31,12 @@ export class Unit {
     const b = int & 0xff;
     return [r, g, b];
   }
+
+  static percentToStep(percent: number, stepCount: number) {
+    return Math.min(Math.round((percent * stepCount) / 100), stepCount);
+  }
+
+  static stepToPercent(step: number, stepCount: number) {
+    return Math.min(Math.round((step * 100) / stepCount), 100);
+  }
 }
