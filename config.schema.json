@@ -16,7 +16,7 @@
             "deviceId": {
               "title": "Device ID",
               "required": true,
-              "type": "string"
+              "type": "number"
             },
             "token": {
               "title": "Device Token",
