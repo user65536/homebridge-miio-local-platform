@@ -30,7 +30,7 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
 
   constructor(config: MiIOManagerConfig) {
     super();
-    this.deviceConfigs = config.devices.filter((i) => i.enable);
+    this.deviceConfigs = config.devices;
     this.bindEvent();
   }
 
