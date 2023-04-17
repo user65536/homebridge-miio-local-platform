@@ -2,6 +2,7 @@ import { DeviceBaseInfo, DeviceDetailInfo } from './DeviceInfo';
 import { MiIONetwork } from './MiIONetwork';
 import { MiIOPacket } from './MiIOPacket';
 import { BuiltinLogger, Logger } from '../utils';
+import { retry } from '../utils/retry';
 
 export interface RequestPayload<T> {
   id: number;
@@ -30,6 +31,7 @@ export class Device {
   baseInfo: DeviceBaseInfo;
   detailInfo?: DeviceDetailInfo;
   logger: Logger = new BuiltinLogger('device');
+  private readonly retryTimes = 2;
   private network: MiIONetwork;
   private requestPromises = new Map<number, RequestPromise>();
 
@@ -83,16 +85,23 @@ export class Device {
     this.detailInfo = res.result;
   }
 
-  send<R, P extends unknown[] = unknown[]>(method: string, params: P) {
-    return new Promise<ResponsePayload<R>>((resolve, reject) => {
+  send = <R, P extends unknown[] = unknown[]>(method: string, params: P) => {
+    const _send = () => {
       const id = this.requestId;
-      const payload = JSON.stringify({ id, method, params });
-      this.logger?.debug(`${this.name} ->`, payload);
-      this.network.sendToDevice(this.baseInfo, payload);
-      this.requestPromises.set(id, { resolve: resolve as (value: unknown) => void, reject });
-      this.setRequestTimeout(id, 3000);
+      return new Promise<ResponsePayload<R>>((resolve, reject) => {
+        const payload = JSON.stringify({ id, method, params });
+        this.logger?.debug(`${this.name} ->`, payload);
+        this.network.sendToDevice(this.baseInfo, payload);
+        this.requestPromises.set(id, { resolve: resolve as (value: unknown) => void, reject });
+        this.setRequestTimeout(id, 3000);
+      });
+    };
+    const retrySend = retry(_send, this.retryTimes, (error) => this.logger.info(`request ${method} send error: `, error));
+    return retrySend().catch((error) => {
+      this.logger.error(`request failed after ${this.retryTimes} retries`, error);
+      throw error;
     });
-  }
+  };
 
   async getProp(prop: string): Promise<string | number>;
   async getProp(prop: string[]): Promise<Array<string | number>>;

@@ -13,6 +13,12 @@
           "title": "Device Config",
           "type": "object",
           "properties": {
+            "enable": {
+              "title": "enable",
+              "required": true,
+              "type": "boolean",
+              "default": true
+            },
             "deviceId": {
               "title": "Device ID",
               "required": true,

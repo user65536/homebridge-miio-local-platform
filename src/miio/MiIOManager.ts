@@ -4,9 +4,11 @@ import { MiIONetwork } from './MiIONetwork';
 import { MiIOPacket } from './MiIOPacket';
 import { EventEmitter } from '../utils/EventEmitter';
 import { BuiltinLogger } from '../utils';
+import { retry } from '../utils/retry';
 
 export interface DeviceConfig extends Pick<DeviceBaseInfo, 'deviceId' | 'token'> {
   name: string;
+  enable?: boolean;
 }
 
 export interface MiIOManagerConfig {
@@ -24,8 +26,11 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
 
   logger = new BuiltinLogger('manager');
 
-  constructor(private config: MiIOManagerConfig) {
+  deviceConfigs: DeviceConfig[] = [];
+
+  constructor(config: MiIOManagerConfig) {
     super();
+    this.deviceConfigs = config.devices.filter((i) => i.enable);
     this.bindEvent();
   }
 
@@ -34,7 +39,7 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
   }
 
   private getConfigByDeviceId(id: number) {
-    const config = this.config.devices.find((i) => i.deviceId === id);
+    const config = this.deviceConfigs.find((i) => i.deviceId === id);
     return config;
   }
 
@@ -74,12 +79,32 @@ export class MiIOManager extends EventEmitter<PlatformEvents> {
     }
   }
 
+  private findUnreadyDevices() {
+    return this.deviceConfigs.filter((i) => !this.findDeviceById(i.deviceId));
+  }
+
+  private _discover = () => {
+    return new Promise((resolve, reject) => {
+      this.network.hello('255.255.255.255');
+      setTimeout(() => {
+        const unreadyDevices = this.findUnreadyDevices();
+        if (unreadyDevices.length === 0) {
+          resolve('');
+        } else {
+          const devicesString = unreadyDevices.map((i) => i.name).join(' ');
+          reject(new Error(`${unreadyDevices.length} device(s) not fount: ${devicesString}`));
+        }
+      }, 3000);
+    });
+  };
+
   findDeviceById(id: number) {
     const device = this.devices.find((i) => i.id === id);
     return device;
   }
 
   discover() {
-    this.network.hello('255.255.255.255');
+    const discover = retry(this._discover, 10);
+    discover().catch((e) => this.logger.error(e));
   }
 }
