@@ -34,7 +34,9 @@ export class ViomiVacuumV7Connector extends DeviceConnector {
   setupBatteryService() {
     const service = this.accessory.getService(this.Service.Battery) || this.accessory.addService(this.Service.Battery);
     service.setCharacteristic(this.Characteristic.Name, 'Battery');
-    service.getCharacteristic(this.Characteristic.BatteryLevel).onGet(() => this.device.getProp('battary_life'));
+    service
+      .getCharacteristic(this.Characteristic.BatteryLevel)
+      .onGet(() => this.controller.getProps().then((r) => r?.battary_life ?? null));
     service.getCharacteristic(this.Characteristic.ChargingState).onGet(async () => {
       const charging = await this.controller.isCharing();
       const chargingState = charging ? this.Characteristic.ChargingState.CHARGING : this.Characteristic.ChargingState.NOT_CHARGING;
@@ -43,7 +45,11 @@ export class ViomiVacuumV7Connector extends DeviceConnector {
   }
 
   async getSuctionPercent() {
-    const grade = await this.device.getProp('suction_grade');
+    const props = await this.controller.getProps();
+    if (!props) {
+      return null;
+    }
+    const grade = props.suction_grade;
     const step = parseInt(grade as string) + 1;
     return Unit.stepToPercent(step, 4);
   }

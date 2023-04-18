@@ -1,13 +1,14 @@
+import { withCache } from '../../utils/withCache';
 import { Device } from '../Device';
 
 export enum WorkType {
-  sleep = 1,
-  pause = 2,
-  sweeping = 3,
-  goCharging = 4,
-  charging = 5,
-  mopping = 6,
-  sweepingAndMopping = 7,
+  sleep = '1',
+  pause = '2',
+  sweeping = '3',
+  goCharging = '4',
+  charging = '5',
+  mopping = '6',
+  sweepingAndMopping = '7',
 }
 
 export class VacuumController {
@@ -20,6 +21,18 @@ export class VacuumController {
       this.device.logger.error(`Failed to send ${method} with params %O\nError: `, params, e);
     });
   }
+
+  getProps = withCache(async () => {
+    const props = ['run_state', 'suction_grade', 'battary_life'];
+    const res = await this.device.getProp(props);
+    if (!res) {
+      return null;
+    }
+    return props.reduce((t, c, index) => {
+      t[c] = res[index];
+      return t;
+    }, {} as Record<string, string | number>);
+  }, 500);
 
   async backCharge() {
     return this.safeSend('set_charge', [1]);
@@ -44,9 +57,20 @@ export class VacuumController {
     this.safeSend('set_suction', [step]);
   }
 
+  async getMode() {
+    const props = await this.getProps();
+    if (!props) {
+      return null;
+    }
+    return props.run_state;
+  }
+
   async getActiveState() {
-    const mode = await this.device.getProp('run_state');
-    const active = [WorkType.mopping, WorkType.sweeping, WorkType.sweepingAndMopping].includes(parseInt(mode as string));
+    const mode = await this.getMode();
+    if (!mode) {
+      return null;
+    }
+    const active = [WorkType.mopping, WorkType.sweeping, WorkType.sweepingAndMopping].includes(String(mode) as WorkType);
     return active;
   }
 
@@ -59,14 +83,18 @@ export class VacuumController {
   }
 
   async isCharing() {
-    const mode = await this.device.getProp('run_state');
-    return parseInt(mode as string) === WorkType.charging;
+    const mode = await this.getMode();
+    if (!mode) {
+      return null;
+    }
+    return String(mode) === WorkType.charging;
   }
 
   async setChargeAfterStop(value: boolean) {
+    const isCharing = await this.isCharing();
     this.chargeAfterStop = value;
     const active = await this.getActiveState();
-    if (this.chargeAfterStop && !active) {
+    if (this.chargeAfterStop && !active && !isCharing) {
       this.backCharge();
     }
   }
