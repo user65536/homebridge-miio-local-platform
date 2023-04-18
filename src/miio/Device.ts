@@ -30,7 +30,7 @@ export class Device {
   name: string;
   baseInfo: DeviceBaseInfo;
   detailInfo?: DeviceDetailInfo;
-  logger: Logger = new BuiltinLogger('device');
+  logger: Logger;
   private readonly retryTimes = 2;
   private network: MiIONetwork;
   private requestPromises = new Map<number, RequestPromise>();
@@ -55,6 +55,7 @@ export class Device {
     this.name = options.name;
     this.baseInfo = options.deviceInfo;
     this.network = options.network;
+    this.logger = new BuiltinLogger('device', `[${this.name}] `);
   }
 
   private setRequestTimeout(id: number, time: number) {
@@ -90,7 +91,7 @@ export class Device {
       const id = this.requestId;
       return new Promise<ResponsePayload<R>>((resolve, reject) => {
         const payload = JSON.stringify({ id, method, params });
-        this.logger?.debug(`${this.name} ->`, payload);
+        this.logger?.debug('->', payload);
         this.network.sendToDevice(this.baseInfo, payload);
         this.requestPromises.set(id, { resolve: resolve as (value: unknown) => void, reject });
         this.setRequestTimeout(id, 3000);
@@ -103,13 +104,18 @@ export class Device {
     });
   };
 
-  async getProp(prop: string): Promise<string | number>;
-  async getProp(prop: string[]): Promise<Array<string | number>>;
+  async getProp(prop: string): Promise<string | number | null>;
+  async getProp(prop: string[]): Promise<Array<string | number> | null>;
   async getProp(prop: string | string[]) {
-    const isArrayProps = Array.isArray(prop);
-    const propArray = isArrayProps ? prop : [prop];
-    const res = await this.send<{ result: Array<string | number> }>('get_prop', propArray);
-    return isArrayProps ? res.result : res.result[0];
+    try {
+      const isArrayProps = Array.isArray(prop);
+      const propArray = isArrayProps ? prop : [prop];
+      const res = await this.send<{ result: Array<string | number> }>('get_prop', propArray);
+      return isArrayProps ? res.result : res.result[0];
+    } catch (e) {
+      this.logger.error(`Failed to get prop ${prop}\n Error:`, e);
+      return null;
+    }
   }
 
   updateAddress(address: string) {
@@ -124,7 +130,7 @@ export class Device {
     try {
       this.baseInfo.deviceUpTime = packet.deviceUpTime;
       const payload = packet.decryptByToken(this.token);
-      this.logger?.debug(`${this.name} <-`, payload);
+      this.logger?.debug('<-', payload);
       if (!payload) {
         return;
       }

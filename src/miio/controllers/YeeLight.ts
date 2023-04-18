@@ -15,7 +15,7 @@ export class YeeLightController {
     try {
       return await this.device.send(key, [...propState, 'smooth', 500]);
     } catch (e: any) {
-      this.device.logger?.error(e);
+      this.device.logger?.error(`Failed to set key ${key}\nError:`, e);
     }
   }
 
@@ -45,12 +45,18 @@ export class YeeLightController {
 
   async getBgRgb() {
     const rgbString = await this.device.getProp('bg_rgb');
+    if (!rgbString) {
+      return null;
+    }
     const rgb = parseInt(rgbString as string);
     return rgb;
   }
 
   async getBgHue() {
     const rgb = await this.getBgRgb();
+    if (!rgb) {
+      return null;
+    }
     const [hue] = Unit.RGBToHSB(...Unit.IntToRGB(rgb));
     this.hue = hue;
     return hue;
@@ -58,6 +64,9 @@ export class YeeLightController {
 
   async getBgSaturation() {
     const rgb = await this.getBgRgb();
+    if (!rgb) {
+      return null;
+    }
     const [, saturation] = Unit.RGBToHSB(...Unit.IntToRGB(rgb));
     this.saturation = saturation;
     return saturation;

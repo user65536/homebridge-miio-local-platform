@@ -15,27 +15,33 @@ export class VacuumController {
 
   constructor(private device: Device) {}
 
+  safeSend(method: string, params: any[]) {
+    this.device.send(method, params).catch((e) => {
+      this.device.logger.error(`Failed to send ${method} with params %O\nError: `, params, e);
+    });
+  }
+
   async backCharge() {
-    return this.device.send('set_charge', [1]);
+    return this.safeSend('set_charge', [1]);
   }
 
   async start() {
-    return this.device.send('set_mode_withroom', [0, 1, 0]);
+    return this.safeSend('set_mode_withroom', [0, 1, 0]);
   }
 
   pause() {
-    this.device.send('set_mode_withroom', [0, 2, 0]);
+    this.safeSend('set_mode_withroom', [0, 2, 0]);
     if (this.chargeAfterStop) {
       this.backCharge();
     }
   }
 
   sleep() {
-    this.device.send('set_mode_withroom', [0, 0, 0]);
+    this.safeSend('set_mode_withroom', [0, 0, 0]);
   }
 
   setSuctionStep(step: number) {
-    this.device.send('set_suction', [step]);
+    this.safeSend('set_suction', [step]);
   }
 
   async getActiveState() {

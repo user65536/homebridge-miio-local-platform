@@ -56,8 +56,12 @@ export class YeeLinkLightLamp15Connector extends DeviceConnector {
     this.setupBgService();
   }
 
-  createPropGetter = (prop: string, transformer?: (prop: string | number) => Nullable<CharacteristicValue>) => () => {
-    return this.device.getProp(prop).then(transformer);
+  createPropGetter = (prop: string, transformer?: (prop: string | number) => Nullable<CharacteristicValue>) => async () => {
+    const result = await this.device.getProp(prop);
+    if (result === null) {
+      return null;
+    }
+    return transformer ? transformer(result) : result;
   };
 
   handleSetBright = (value: CharacteristicValue) => {

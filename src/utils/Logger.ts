@@ -16,7 +16,7 @@ export class BuiltinLogger implements Logger {
 
   static composedLogger: Logger[] = [];
 
-  constructor(scope = '') {
+  constructor(scope = '', private prefix = '') {
     this.scope = scope;
     this.debugLog = debug(scope);
   }
@@ -26,8 +26,8 @@ export class BuiltinLogger implements Logger {
   }
 
   log(level: keyof Logger, message: string, ...params: any[]) {
-    this.debugLog(`(${level}) ${message}`, ...params);
-    BuiltinLogger.composedLogger.forEach((i) => i[level](`[${this.scope}] ${message}`, ...params));
+    this.debugLog(`(${level}) ${this.prefix}${message}`, ...params);
+    BuiltinLogger.composedLogger.forEach((i) => i[level](`[${this.scope}] ${this.prefix}${message}`, ...params));
   }
 
   private createLogWithLevel =
