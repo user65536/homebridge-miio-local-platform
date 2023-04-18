@@ -1,7 +1,7 @@
 {
   "displayName": "MiIO Local Platform",
   "name": "homebridge-miio-local-platform",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A homebridge plugin for devices support miIO protocol",
   "license": "Apache-2.0",
   "repository": {
