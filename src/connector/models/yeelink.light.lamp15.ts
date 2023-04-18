@@ -14,7 +14,7 @@ export class YeeLinkLightLamp15Connector extends DeviceConnector {
     service
       .getCharacteristic(this.Characteristic.On)
       .onSet((value) => this.controller.setLightPower(value ? 'on' : 'off'))
-      .onGet(this.createPropGetter('power', (p) => p === 'on'));
+      .onGet(this.createPropGetter('main_power', (p) => p === 'on'));
 
     service
       .getCharacteristic(this.Characteristic.Brightness)
