@@ -33,7 +33,7 @@ export class Unit {
   }
 
   static percentToStep(percent: number, stepCount: number) {
-    return Math.min(Math.round((percent * stepCount) / 100), stepCount);
+    return Math.min(Math.ceil((percent * stepCount) / 100), stepCount);
   }
 
   static stepToPercent(step: number, stepCount: number) {

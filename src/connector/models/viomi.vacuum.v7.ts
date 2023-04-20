@@ -56,7 +56,7 @@ export class ViomiVacuumV7Connector extends DeviceConnector {
 
   setSuctionPercent(value: number) {
     const step = Unit.percentToStep(value as number, 4);
-    this.controller.setSuctionStep(step);
+    this.controller.setSuctionStep(Math.max(0, step - 1));
     return step;
   }
 
