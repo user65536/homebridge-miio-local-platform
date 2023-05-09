@@ -1,5 +1,5 @@
 import { DeviceConnectorConstructor } from './DeviceConnector';
-import { ViomiVacuumV7Connector, YeeLinkLightLamp15Connector } from './models';
+import { CucoPlugV3Connector, ViomiVacuumV7Connector, YeeLinkLightLamp15Connector } from './models';
 
 export class ConnectorFactory {
   private static connectors: DeviceConnectorConstructor[] = [];
@@ -15,3 +15,4 @@ export class ConnectorFactory {
 
 ConnectorFactory.register(YeeLinkLightLamp15Connector);
 ConnectorFactory.register(ViomiVacuumV7Connector);
+ConnectorFactory.register(CucoPlugV3Connector);
