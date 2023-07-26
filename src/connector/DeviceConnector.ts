@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { CharacteristicValue, Nullable, PlatformAccessory } from 'homebridge';
 import { Device } from '../miio/Device';
 import { MiIOLocalPlatform } from '../MiIOLocalPlatform';
 
@@ -23,6 +23,14 @@ export abstract class DeviceConnector {
       .setCharacteristic(this.Characteristic.SerialNumber, String(this.device.id))
       .setCharacteristic(this.Characteristic.FirmwareRevision, String(this.device.detailInfo?.fw_ver || 'unknown'));
   }
+
+  protected createPropGetter = (prop: string, transformer?: (prop: string | number) => Nullable<CharacteristicValue>) => async () => {
+    const result = await this.device.getProp(prop);
+    if (result === null) {
+      return null;
+    }
+    return transformer ? transformer(result) : result;
+  };
 }
 
 export interface DeviceConnectorConstructor {

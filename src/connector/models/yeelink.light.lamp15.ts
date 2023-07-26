@@ -1,6 +1,6 @@
 import { YeeLightController } from '../../miio/controllers';
 import { DeviceConnector } from '../DeviceConnector';
-import { CharacteristicValue, Nullable } from 'homebridge';
+import { CharacteristicValue } from 'homebridge';
 import { Unit } from '../../utils';
 
 export class YeeLinkLightLamp15Connector extends DeviceConnector {
@@ -55,14 +55,6 @@ export class YeeLinkLightLamp15Connector extends DeviceConnector {
     this.setupLightService();
     this.setupBgService();
   }
-
-  createPropGetter = (prop: string, transformer?: (prop: string | number) => Nullable<CharacteristicValue>) => async () => {
-    const result = await this.device.getProp(prop);
-    if (result === null) {
-      return null;
-    }
-    return transformer ? transformer(result) : result;
-  };
 
   handleSetBright = (value: CharacteristicValue) => {
     this.controller.setLightBright(value as number);
