@@ -1,7 +1,7 @@
 import { DeviceConnector } from '../DeviceConnector';
 
-export class CucoPlugV3Connector extends DeviceConnector {
-  static model = 'cuco.plug.v3';
+export class CucoPlugConnector extends DeviceConnector {
+  static model = ['cuco.plug.v3', 'cuco.plug.cp2d'];
 
   setupSwitchService() {
     const service = this.accessory.getService(this.Service.Switch) || this.accessory.addService(this.Service.Switch);

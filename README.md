@@ -17,6 +17,7 @@ This is a homebridge platform plugin that bridges your MiIO devices to HomeKit w
 | viomi.vacuum.v7      | Fanv2 (vacuum service is not supported by HomeKit currently) |
 | yeelink.light.lamp15 | Lightbulb                                                    |
 | cuco.plug.v3         | Switch                                                       |
+| cuco.plug.cp2d       | Switch                                                       |
 | lumi.acpartner.mcn02 | HeaterCooler                                                 |
 
 ## Plugin Config in Homebridge UI

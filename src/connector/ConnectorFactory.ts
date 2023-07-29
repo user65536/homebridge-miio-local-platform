@@ -9,7 +9,13 @@ export class ConnectorFactory {
   }
 
   static find(model: string) {
-    return this.connectors.find((i) => i.model === model);
+    return this.connectors.find((i) => {
+      if (typeof i.model === 'string') {
+        return i.model === model;
+      } else {
+        return i.model.includes(model);
+      }
+    });
   }
 }
 

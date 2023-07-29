@@ -34,6 +34,6 @@ export abstract class DeviceConnector {
 }
 
 export interface DeviceConnectorConstructor {
-  model: string;
+  model: string | string[];
   new (device: Device, accessory: PlatformAccessory, platform: MiIOLocalPlatform): DeviceConnector;
 }
